@@ -9,8 +9,9 @@ import {
 } from '@/services/blog.services';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
+import debounce from 'lodash/debounce';
 
-export const useBlogStore = defineStore('blogStore', () => {
+  export const useBlogStore = defineStore('blogStore', () => {
   const editorValue = ref('');
   const posts = ref([]);
   const name = ref('');
@@ -19,10 +20,16 @@ export const useBlogStore = defineStore('blogStore', () => {
   const commentsObject = ref();
   const commentsList = ref([]);
   const blog = ref('');
+  const totalRecords = ref('');
+  const isLoading = ref();
+  const addPostId = ref();
+  const isCommentLoading = ref(false)
 
   const addBlogPosts = async (data) => {
+    isLoading.value = true;
     try {
       const result = await postAllBlogs(data);
+      addPostId.value = result.data.post.id;
       return {
         success: true,
         message: result.data.message,
@@ -32,64 +39,85 @@ export const useBlogStore = defineStore('blogStore', () => {
       return {
         success: false,
         message: error.response.data.message,
-        errors: error.response.data.errors.map((err) =>
-          err.errors.map((err) => err),
-        ),
+        errors: error.response.data.errors,
       };
     }
   };
 
-  const getBlogPosts = async () => {
-    posts.value = await getAllBlogs()
-      .then((result) => {
-        console.log('bbbbbbbbb', result);
+const debouncedGetAllBlogs = debounce(
+  (title, subtitle, page, limit, resolve, reject) => {
+    getAllBlogs(title, subtitle, page, limit).then(resolve).catch(reject);
+  },
+  1500
+);
 
-        return result.data.blogs;
-      })
-      .catch((err) => {
-        return err;
-      });
-    console.log('====================================');
-    console.log(posts.value);
-    console.log('====================================');
-  };
+const getBlogPosts = (title, subtitle, page, limit) => {
+  isLoading.value = true;
+  return new Promise((resolve, reject) => {
+    debouncedGetAllBlogs(title, subtitle, page, limit, resolve, reject);
+  })
+  .then(result => {
+    isLoading.value = false;
+    totalRecords.value = result.data.totalRecords;
+    posts.value = result.data.blogs;
+  })
+  .catch(err => {
+    isLoading.value = false;
+    console.error(err);
+  });
+};
+
 
   const getBlogPostsById = async (postId) => {
-    blog.value = await getBlogById(postId)
+    isLoading.value = true;
+    blog.value = setTimeout(async() => {
+      await getBlogById(postId)
       .then((result) => {
-        console.log('value of the result is ', result.blogs);
+       isLoading.value = false;
+        console.log('value of the result is ', result.data.blogs);
+        commentsList.value = result.data.blogs.comments;
+        // console.log('new comments list is', commentsList.value);
         return result.data.blogs;
-      })
+      })  
       .catch((err) => {
         return err;
       });
+    }, 2000)
     console.log('vblog.cas ', blog.value);
-
-    // const stored = localStorage.getItem('blogsList');
-    // if (stored) {
-    //   const parsedPosts = JSON.parse(stored);
-    //   console.log('parsed posts', parsedPosts);
-    //   const post = parsedPosts.find((p) => Number(p.id) === Number(postId));
-    //   return post;
-    // }
-    // return null;
   };
   const postComment = async (data, blogId) => {
+    isCommentLoading.value = true
     try {
       const result = await addComments(data, blogId);
-      console.log('result while posting comment', result);
+      let pushingComment = {
+        id: result.data.comment.id,
+        username: result.data.comment.username,
+        email: result.data.comment.email,
+        comment: result.data.comment.comment,
+      };
+      commentsList.value = [...commentsList.value, pushingComment];
       if (result.status === 200) {
+        isCommentLoading.value = false
         return {
           success: true,
           message: result.data.message,
         };
       }
     } catch (error) {
-      console.log('error while posting comment', error);
+      
+      console.log('error while submitting comments', {
+        success: false,
+        message: error.response.data.messagge,
+        errors: error.response.data.error,
+      });
+      console.log(
+        'simple error is',
+        error.response.data.error.map((e) => e),
+      );
       return {
         success: false,
         message: error.response.data.messagge,
-        errors: error.response.data.error.map((err) => err.error.map((e) => e)),
+        errors: error.response.data.error.map((e) => e),
       };
     }
   };
@@ -101,12 +129,10 @@ export const useBlogStore = defineStore('blogStore', () => {
         message: result.data.message,
       };
     } catch (error) {
-      console.log('error in catch is', error.response.data.errors.map((err) => err.error.map((e) => e)));
-
       return {
         success: false,
         message: error.response.data.message,
-        error: error.response.data.errors.map((err) => err.error.map((e) => e))
+        error: error.response.data.errors,
       };
     }
   };
@@ -119,20 +145,22 @@ export const useBlogStore = defineStore('blogStore', () => {
         message: result.data.message,
       };
     } catch (error) {
+       let comIndex = commentsList.value.findIndex(id)
+      console.log('index of comment is', comIndex)
       console.log('error', error);
-
       return {
         success: false,
-        error: error.response.data.error.map((error) => ({
-          error: error.error.map((err) => err),
-        })),
+        message: error.response.data.messagge,
+        error: error.response.data.error,
       };
     }
   };
-
   const deleteComment = async (id) => {
     try {
+      console.log('id in store is', id);
+      console.log('aaaaaaaaaaaaaaaa', commentsList.value);
       const result = await deleteCommentById(id);
+      commentsList.value = commentsList.value.filter((com) => com.id !== id);
       // blog.value = blog.value.comments.filter((comment) => comment.id !== id);
       return {
         success: true,
@@ -146,6 +174,13 @@ export const useBlogStore = defineStore('blogStore', () => {
     }
   };
 
+  // const searchBlogList = async (title, subtitle) => {
+  //   posts.value = await searchQuery(title, subtitle).then((res) => {
+  //     return res.data.blogs;
+  //   });
+  //   console.log('search result is a', posts.value);
+  // };
+
   return {
     editorValue,
     posts,
@@ -154,6 +189,11 @@ export const useBlogStore = defineStore('blogStore', () => {
     comment,
     commentsObject,
     commentsList,
+    blog,
+    totalRecords,
+    isLoading,
+    addPostId,
+    isCommentLoading,
     addBlogPosts,
     getBlogPosts,
     getBlogPostsById,
@@ -161,7 +201,8 @@ export const useBlogStore = defineStore('blogStore', () => {
     updateComment,
     editPostById,
     deleteComment,
-    blog,
+    debouncedGetAllBlogs
+    // searchBlogList,
   };
 });
 

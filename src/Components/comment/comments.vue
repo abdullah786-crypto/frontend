@@ -8,36 +8,26 @@ import InputText from 'primevue/inputtext';
 import Menu from 'primevue/menu';
 import Toast from 'primevue/toast';
 import { useToast } from 'primevue/usetoast';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 
 const props = defineProps(['username', 'email', 'comment', 'id', 'commentsList'])
 const menu = ref(null)
 const showDialog = ref(false)
 const blogStore = useBlogStore()
 const toast = useToast()
-// const comment
-onMounted(() => {
-    console.log('username', props.username);
-    console.log('email', props.email);
-    console.log('comment', props.comment);
-})
+
 const commentData = {
     username: props.username,
     email: props.email,
     comment: props.comment
 }
 
-
 const toggle = (event) => {
     menu.value.toggle(event)
 }
 const updateButton = async () => {
     const commentId = props.id
-    console.log('clicked on update button');
-
-
     const result = await blogStore.updateComment(commentData, commentId)
-    console.log('clicked on update button 2',);
 
     if (result.success) {
 
@@ -49,9 +39,11 @@ const updateButton = async () => {
         })
         showDialog.value = false
     } else {
+        console.log('error while updating comment is', result.error);
+
         toast.add({
             severity: 'error',
-            summary: 'Update failed',
+            summary: result.message,
             detail: result.error,
             life: 3000
         })
@@ -60,6 +52,7 @@ const updateButton = async () => {
 
 const deleteButton = async () => {
     const commentId = props.id
+    console.log('id in comment comp', commentId)
     const result = await blogStore.deleteComment(commentId)
 
     if (result.success) {
@@ -69,6 +62,9 @@ const deleteButton = async () => {
             detail: result.message,
             life: 3000,
         })
+        console.log('comment id is', typeof commentId, commentId);
+        
+        blogStore.commentsList = blogStore.commentsList.filter((com) => com.id !== commentId)
         showDialog.value = false
     } else {
         toast.add({
@@ -104,20 +100,21 @@ const items = [
     <Card class="border-gray-200 w-[100%] m-0 m-[0px] mb-0 shadow-lg shadow-xl shadow-2xl shadow-md">
         <template #title>
             <div class="flex flex-row w-full justify-between">
-                {{ commentData.username }}
+                {{ commentData.username }} &nbsp; id: {{ props.id }}
                 <Button type="button" icon="pi pi-ellipsis-v" @click="toggle" aria-haspopup="true"
                     aria-controls="overlay_menu" />
                 <Menu ref="menu" :model="items" :popup="true" />
                 <Dialog v-model:visible="showDialog" header="Update Comment" modal :style="{ width: '30rem' }">
                     <div class="flex flex-col gap-y-5">
+                        
                         <div class="items-center flex flex-row w-full justify-between gap-x-5">
                             <label for="username" class="font-semibold w-24">Username</label>
-                            <InputText class="w-full" name="username" type="text" placeholder="Your Name"
+                            <InputText class="w-full" name="username" type="text" placeholder="Your name"
                                 v-model="commentData.username" />
                         </div>
                         <div class="items-center flex flex-row w-full justify-between gap-x-5">
                             <label for="username" class="font-semibold w-24">Email</label>
-                            <InputText class="w-full" name="userEmail" type="text" placeholder="email"
+                            <InputText class="w-full" name="userEmail" type="text" placeholder="Email"
                                 v-model="commentData.email" />
                         </div>
                         <div class="items-center flex flex-row w-full justify-between gap-x-5">
@@ -129,9 +126,6 @@ const items = [
                         <Button @click="updateButton" class="bg-black p-[8px] mt-5" label="Update" />
                     </div>
                 </Dialog>
-
-
-                <!-- <SplitButton rounded :text="false" class="bg-black" :model="items" menu-button-icon="pi pi-ellipsis-v"></SplitButton> -->
             </div>
         </template>
         <template #subtitle>{{ commentData.email }}</template>
@@ -141,8 +135,6 @@ const items = [
             </p>
         </template>
     </Card>
-
-    <!-- pi-ellipsis-v -->
 </template>
 <style scoped>
 ::v-deep(.p-button.p-button-icon-only) {

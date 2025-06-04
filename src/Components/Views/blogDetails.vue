@@ -4,11 +4,11 @@ import { ref, onMounted, computed, watch } from 'vue';
 import useBlogStore from '@/State managment/blogPostStore';
 import { useRoute, useRouter } from 'vue-router';
 import InputText from 'primevue/inputtext';
-import Card from 'primevue/card';
 import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
 import Toast from 'primevue/toast';
 import Comments from '../comment/comments.vue';
+import TextFieldsError from '../comment/textFieldsError.vue';
 
 const props = defineProps(['id', 'title', 'subtitle', 'comments'])
 
@@ -21,15 +21,14 @@ const userEmail = ref('')
 const comment = ref('')
 const postId = ref('')
 const toast = useToast()
-watch(()=> blogStore.blog.comments,  (newComments, oldComments) => {
-    console.log('new list s', newComments)
-    console.log('old list s', oldComments)
-}, {
-    deep: true
-})
+const isLoadingComment = ref(false)
+let userNameError = ref(false)
+let emailError = ref(false)
+let commentErr = ref(false)
 
 onMounted(async () => {
     postId.value = route.params.id
+    
     await blogStore.getBlogPostsById(postId.value);
 })
 const gotToUpdatePostPage = (id) => {
@@ -38,14 +37,13 @@ const gotToUpdatePostPage = (id) => {
 }
 
 const postComment = async () => {
-    console.log('Blog id is', postId.value);
-    
-    const data = JSON.stringify({
+    isLoadingComment.value = true
+    const pushingData = JSON.stringify({
         username: userName.value,
         email: userEmail.value,
         comment: comment.value,
     })
-    const result = await blogStore.postComment(data, postId.value)
+    const result = await blogStore.postComment(pushingData, postId.value)
     if (result.success) {
         toast.add({
             severity: 'success',
@@ -53,21 +51,36 @@ const postComment = async () => {
             detail: result.message,
             life: 3000,
         })
+        userName.value = '',
+            userEmail.value = ''
+        comment.value = ''
+        userNameError.value = false
+        emailError.value = false
+        commentErr.value = false
+        isLoadingComment.value = false
     } else {
+
+        userNameError.value = result.errors.find((e) => e.property === 'username' ? e.error[0] : false)
+        emailError.value = result.errors.find((e) => e.property === 'email' ? e.error : false)
+        commentErr.value = result.errors.find((e) => e.property === 'comment' ? e.error[0] : false)
         toast.add({
             severity: 'error',
             summary: result.message,
-            detail: result.errors,
             life: 3000,
         })
+        isLoadingComment.value = false
     }
 }
 
 </script>
 
 <template>
-
-    <div v-if="blogStore.blog" class="p-10">
+    <div v-if="blogStore.isLoading">
+        <div class="flex flex-row text-center justify-center h-[100%] w-[100%]">
+            <h1 class="text-xl font-bold">Please wait data is loading ......</h1>
+        </div>
+    </div>
+    <div v-else-if="blogStore.blog" class="p-10">
         <div class="p-10">
             <div>
                 <h1 class="text-[30px] text-xl text-lg text-2xl font-bold text-center">{{ blogStore.blog.title }}</h1>
@@ -85,14 +98,19 @@ const postComment = async () => {
         </div>
         <div class="p-10 ">
             <h1 class="mb-10 text-[30px] text-xl text-lg text-2xl font-bold text-center">All Comments list</h1>
-            <div v-if="blogStore.blog.comments.length > 0">
-                <div v-for="(newComment) in blogStore.blog.comments">
+            <div v-if="blogStore.commentsList.length > 0">
+                <div v-for="(newComment) in blogStore.commentsList">
                     <div
                         class="border-gray-200 p-5 m-0 m-[0px] mb-0 bg-grey-400 flex flex-col items-center overflow-auto overflow-y-auto content-center max-h-450px min-h-auto mb-40 justify-center ">
                         <!-- comment comp here -->
                         <Comments :id="newComment.id" :email="newComment.email" :username="newComment.username"
                             :comment="newComment.comment" />
                     </div>
+                </div>
+            </div>
+            <div v-else-if="blogStore.isLoading">
+                <div class="flex flex-row text-center justify-center h-[100%] w-[100%]">
+                    <h1 class="text-xl font-bold">Please wait data is loading ......</h1>
                 </div>
             </div>
             <div v-else class="bg-grey-500 mb-10 text-[15px] text-xl text-lg text-2xl font-bold text-center">
@@ -103,20 +121,35 @@ const postComment = async () => {
             </h1>
             <div class="flex flex-row items-center content-center mb-40 justify-center">
                 <div class="flex flex-col gap-2 w-[50%]">
-                    <InputText name="username" type="text" placeholder="Your Name" v-model="userName" />
-                    <InputText name="userEmail" type="text" placeholder="email" v-model="userEmail" />
-                    <InputText name="comment" type="text" placeholder="Write your comment here...!!"
-                        v-model="comment" />
+                    <InputText
+                        :class="userNameError && !userName && 'border-2 border-red-500 focus:border-red-500 focus:border-2'"
+                        name="username" type="text" placeholder="Your name" v-model="userName" />
+                    <div v-if="userNameError && !userName">
+                        <TextFieldsError :error-title="userNameError.error[0]" />
+                    </div>
+                    <InputText :class="emailError && 'border-2 border-red-500 focus:border-red-500 focus:border-2'"
+                        name="userEmail" type="text" placeholder="Email" v-model="userEmail" />
+                    <div v-if="emailError">
+                        <TextFieldsError :error-title="emailError.error.join(', ')" />
+                    </div>
+                    <InputText
+                        :class="commentErr && !comment && 'border-2 border-red-500 focus:border-red-500 focus:border-2'"
+                        name="comment" type="text" placeholder="Write your comment here...!!" v-model="comment" />
+                    <div v-if="commentErr && !comment">
+                        <TextFieldsError :error-title="commentErr.error[0]" />
+                    </div>
                     <Toast />
-                    <Button @click="postComment" class="w-[100%] bg-black mt-10" label="Post Comment" />
+                    <Button :loading="blogStore.isCommentLoading" @click="postComment" class="w-[100%] bg-black mt-10"
+                        label="Post Comment" />
                 </div>
             </div>
 
         </div>
     </div>
+    
     <div v-else>
         <div class="flex flex-row text-center justify-center h-[100%] w-[100%]">
-            <h1 class="text-xl font-bold">Please wait data is loading ......</h1>
+            <h1 class="text-xl font-bold">Failed to fetch post</h1>
         </div>
     </div>
 

@@ -23,20 +23,25 @@ onMounted(() => {
 
 <template>
 
-    <Card class="shadow-xl border border-gray-200" style="width: 100%; overflow: hidden">
+    <Card class="shadow-xl border border-gray-200 w-full h-[319px]" style="width: 100%; overflow: hidden">
         <template #header>
-            <img alt="user header" :src="imgUrl" />
+            <div class="h-[142px]">
+                <img class="self-center" alt="Failed to load image ☹️" :src="imgUrl" />
+            </div>
         </template>
         <template #title>
-            {{ title }}
+            <div class="max-w-[99%] h-[37px] min-w-[99%] whitespace-nowrap overflow-hidden text-ellipsis">{{ props.title
+            }}</div>
         </template>
-        <template :class="'text-justify'" #subtitle>
-            {{ subtitle }}
+        <template :class="' text-justify'" #subtitle>
+            <div class="h-[24px]">
+                {{ props.subtitle }}
+            </div>
         </template>
         <template #content>
-            <div class="w-full flex flex-row justify-between ">
+            <div class="w-full flex flex-row justify-between h-[18px]">
                 <p class="text-[12px] text-gray-400">Total comments:</p>
-                <p class="text-[11px] text-gray-400">{{ comments.length }}</p>
+                <p class="text-[11px] text-gray-400">{{ props.comments.length }}</p>
             </div>
         </template>
         <template #footer>

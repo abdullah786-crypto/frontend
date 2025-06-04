@@ -2,14 +2,17 @@ import axios from 'axios';
 
 export const baseUrl = 'http://localhost:3000/api';
 
-export const getAllBlogs = async () => {
+export const getAllBlogs = async (title, subtitle, page, limit) => {
   try {
     return axios
-      .get(`${baseUrl}/blog`, {
-        headers: {
-          'Content-Type': 'application/json',
+      .get(
+        `${baseUrl}/blog/?title=${title}&subtitle=${subtitle}&page=${page}&limit=${limit}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
         },
-      })
+      )
       .then((result) => {
         return result;
       });
@@ -105,7 +108,18 @@ export const updateBlogById = async (data, id) => {
     });
     return respose;
   } catch (error) {
-    
     throw error;
   }
+};
+
+export const searchQuery = async (title, subtitle) => {
+  return await axios
+    .get(`${baseUrl}/blog/search?title=${title}&subtitle=${subtitle}`)
+    .then((result) => {
+      console.log;
+      return result;
+    })
+    .catch((err) => {
+      throw err;
+    });
 };

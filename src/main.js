@@ -16,6 +16,7 @@ import 'quill/dist/quill.snow.css'; // for Editor
 import Editor from 'primevue/editor'
 import './assets/main.css'
 import Toast from 'primevue/toast';
+import Quill from 'quill';
 // Toast
 
 const pinia = createPinia();
