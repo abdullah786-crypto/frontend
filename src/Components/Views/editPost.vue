@@ -8,7 +8,7 @@ import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import useBlogStore from '@/stores/blogPostStore';
 import InputText from 'primevue/inputtext';
-import TextFieldsError from '../comment/textFieldsError.vue';
+import TextFieldsError from '../validationErrors/textFieldsError.vue';
 
 const blogStore = useBlogStore()
 const postId = ref('');

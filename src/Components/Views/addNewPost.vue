@@ -7,7 +7,7 @@ import { useRouter } from 'vue-router';
 import InputText from 'primevue/inputtext';
 import Toast from 'primevue/toast';
 import { useToast } from 'primevue/usetoast';
-import TextFieldsError from '../comment/textFieldsError.vue';
+import TextFieldsError from '../validationErrors/textFieldsError.vue';
 const router = useRouter();
 
 const toast = useToast()

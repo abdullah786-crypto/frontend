@@ -8,7 +8,7 @@ import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
 import Toast from 'primevue/toast';
 import Comments from '../comment/comments.vue';
-import TextFieldsError from '../comment/textFieldsError.vue';
+import TextFieldsError from '../validationErrors/textFieldsError.vue';
 
 const props = defineProps(['id', 'title', 'subtitle', 'comments'])
 
