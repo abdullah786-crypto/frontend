@@ -1,10 +1,4 @@
-// import AddNewPost from "@/Components/BlogPost/addNewPost.vue";
-// AddNewPost
-// import BlogDetails from "@/Components/BlogPost/blogDetails.vue";
-// BlogDetails
-// import EditPost from "@/Components/BlogPost/editPost.vue";
-// EditPost
-import MainFile from "@/Components/mainFile.vue";
+import HomePage from "@/Components/homePage.vue";
 import AddNewPost from "@/Components/Views/addNewPost.vue";
 import BlogDetails from "@/Components/Views/blogDetails.vue";
 import EditPost from "@/Components/Views/editPost.vue";
@@ -14,7 +8,7 @@ export const routes = [
     {
         path: '/',
         name: 'home',
-        component: MainFile,
+        component: HomePage,
     },
     {
         path: '/add-new-post',

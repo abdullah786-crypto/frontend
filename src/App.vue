@@ -1,6 +1,6 @@
 <script setup>
 
-import MainFile from './Components/mainFile.vue'
+import MainFile from './Components/homePage.vue'
 
 </script>
 

@@ -1,7 +1,7 @@
 <script setup>
 
-import { ref, onMounted, computed, watch } from 'vue';
-import useBlogStore from '@/State managment/blogPostStore';
+import { ref, onMounted } from 'vue';
+import useBlogStore from '@/stores/blogPostStore';
 import { useRoute, useRouter } from 'vue-router';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
@@ -27,17 +27,21 @@ let emailError = ref(false)
 let commentErr = ref(false)
 
 onMounted(async () => {
-    postId.value = route.params.id
-    
+    postId.value = Number(route.params.id)
+
+
+
     await blogStore.getBlogPostsById(postId.value);
 })
 const gotToUpdatePostPage = (id) => {
-    console.log('clicked to edit post button',)
     router.push({ name: 'update-post', })
 }
 
 const postComment = async () => {
     isLoadingComment.value = true
+    userNameError.value = false
+    emailError.value = false
+    commentErr.value = false
     const pushingData = JSON.stringify({
         username: userName.value,
         email: userEmail.value,
@@ -52,23 +56,24 @@ const postComment = async () => {
             life: 3000,
         })
         userName.value = '',
-            userEmail.value = ''
+        userEmail.value = ''
         comment.value = ''
         userNameError.value = false
         emailError.value = false
         commentErr.value = false
         isLoadingComment.value = false
     } else {
-
-        userNameError.value = result.errors.find((e) => e.property === 'username' ? e.error[0] : false)
-        emailError.value = result.errors.find((e) => e.property === 'email' ? e.error : false)
-        commentErr.value = result.errors.find((e) => e.property === 'comment' ? e.error[0] : false)
-        toast.add({
-            severity: 'error',
-            summary: result.message,
-            life: 3000,
-        })
-        isLoadingComment.value = false
+        if (result.errors) {
+            userNameError.value = result.errors.find(v => v.field === 'username')
+            emailError.value = result.errors.find(v => v.field === 'email')
+            commentErr.value = result.errors.find((e) => e.field === 'comment')
+            toast.add({
+                severity: 'error',
+                summary: result.message,
+                life: 3000,
+            })
+            isLoadingComment.value = false
+        }
     }
 }
 
@@ -101,7 +106,7 @@ const postComment = async () => {
             <div v-if="blogStore.commentsList.length > 0">
                 <div v-for="(newComment) in blogStore.commentsList">
                     <div
-                        class="border-gray-200 p-5 m-0 m-[0px] mb-0 bg-grey-400 flex flex-col items-center overflow-auto overflow-y-auto content-center max-h-450px min-h-auto mb-40 justify-center ">
+                        class="border-gray-200 p-5 m-0 m-[0px] mb-0 bg-grey-400 flex flex-col items-center overflow-auto overflow-y-auto content-center max-h-450px min-h-auto justify-center ">
                         <!-- comment comp here -->
                         <Comments :id="newComment.id" :email="newComment.email" :username="newComment.username"
                             :comment="newComment.comment" />
@@ -121,22 +126,20 @@ const postComment = async () => {
             </h1>
             <div class="flex flex-row items-center content-center mb-40 justify-center">
                 <div class="flex flex-col gap-2 w-[50%]">
-                    <InputText
-                        :class="userNameError && !userName && 'border-2 border-red-500 focus:border-red-500 focus:border-2'"
+                    <InputText :class="userNameError && 'border-2 border-red-500 focus:border-red-500 focus:border-2'"
                         name="username" type="text" placeholder="Your name" v-model="userName" />
-                    <div v-if="userNameError && !userName">
-                        <TextFieldsError :error-title="userNameError.error[0]" />
+                    <div v-if="userNameError">
+                        <TextFieldsError :error-title="userNameError.message" />
                     </div>
                     <InputText :class="emailError && 'border-2 border-red-500 focus:border-red-500 focus:border-2'"
                         name="userEmail" type="text" placeholder="Email" v-model="userEmail" />
                     <div v-if="emailError">
-                        <TextFieldsError :error-title="emailError.error.join(', ')" />
+                        <TextFieldsError :error-title="emailError.message" />
                     </div>
-                    <InputText
-                        :class="commentErr && !comment && 'border-2 border-red-500 focus:border-red-500 focus:border-2'"
+                    <InputText :class="commentErr && 'border-2 border-red-500 focus:border-red-500 focus:border-2'"
                         name="comment" type="text" placeholder="Write your comment here...!!" v-model="comment" />
-                    <div v-if="commentErr && !comment">
-                        <TextFieldsError :error-title="commentErr.error[0]" />
+                    <div v-if="commentErr">
+                        <TextFieldsError :error-title="commentErr.message" />
                     </div>
                     <Toast />
                     <Button :loading="blogStore.isCommentLoading" @click="postComment" class="w-[100%] bg-black mt-10"
@@ -146,7 +149,7 @@ const postComment = async () => {
 
         </div>
     </div>
-    
+
     <div v-else>
         <div class="flex flex-row text-center justify-center h-[100%] w-[100%]">
             <h1 class="text-xl font-bold">Failed to fetch post</h1>

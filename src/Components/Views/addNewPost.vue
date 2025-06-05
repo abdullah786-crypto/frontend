@@ -1,8 +1,8 @@
 <script setup>
 import Editor from 'primevue/editor';
 import Button from 'primevue/button';
-import { ref, onMounted, watch } from 'vue';
-import useBlogStore from '@/State managment/blogPostStore';
+import { ref } from 'vue';
+import useBlogStore from '@/stores/blogPostStore';
 import { useRouter } from 'vue-router';
 import InputText from 'primevue/inputtext';
 import Toast from 'primevue/toast';
@@ -16,7 +16,6 @@ const title = ref('');
 const subtitle = ref('');
 const image = ref('');
 const editorData = ref('');
-const isLoading = ref(false)
 let titleError = ref(false)
 let subtitleError = ref(false)
 let imageError = ref(false)
@@ -24,8 +23,11 @@ let blogError = ref(false)
 let formSubmit = ref(false)
 
 const postBlogsList = async () => {
-    isLoading.value = true
     formSubmit.value = true
+    titleError.value = false
+    subtitleError.value = false
+    imageError.value = false
+    blogError.value = false
     const data = JSON.stringify({
         title: title.value,
         subtitle: subtitle.value,
@@ -53,32 +55,35 @@ const postBlogsList = async () => {
         setTimeout(() => {
             router.push(`/blog-details/${newBlogStore.addPostId}`)
         }, 1500)
-        isLoading.value = false
     } else {
-        // titleError.value = result.errors.find((err) => err.property === 'title' ? titleError.value === err.errors.join('and ') : false)
-        subtitleError.value = result.errors.find((err) => err.property === 'subtitle' ? err.errors : false)
-        imageError.value = result.errors.find((err) => err.property === 'image' ? err.errors : false)
-        blogError.value = result.errors.find((err) => err.property === 'blogData' ? err.errors : false)
-        titleError.value = result.errors.find((err) => err.property === 'title' ? err.errors : false)
-        console.log('Title error is', titleError.value);
-        console.log('Title error is', subtitleError.value);
-        console.log('Title error is', imageError.value);
-        console.log('Title error is', blogError.value);
-        console.log('error while adding post is', result.errors);
+
+        titleError.value = result.errors.filter((err) => err.field === 'title').map(v => v.message)
+        subtitleError.value = result.errors.filter((err) => err.field === 'subtitle').map(v => v.message)
+        imageError.value = result.errors.filter((err) => err.field === 'image').map(v => v.message)
+        blogError.value = result.errors.filter((err) => err.field === 'blogData').map(v => v.message)
+
+        if (titleError.value.length === 0) {
+            titleError.value = false
+        }
+        if (subtitleError.value.length === 0) {
+            subtitleError.value = false
+        }
+        if (imageError.value.length === 0) {
+            imageError.value = false
+        }
+        if (blogError.value.length === 0) {
+            blogError.value = false
+        }
         toast.add({
             severity: 'error',
             summary: result.message,
-            // detail: result.errors,
             life: 3000,
         })
-        isLoading.value = false
     }
 };
 const goHomePage = () => {
     router.push('/');
 };
-
-onMounted(() => newBlogStore.getBlogPosts());
 
 </script>
 <template>
@@ -90,41 +95,33 @@ onMounted(() => newBlogStore.getBlogPosts());
             </div>
 
             <div class="card mt-10 flex flex-col gap-3 w-[95%] self-center">
-                <!-- Title Field -->
-                <InputText :class="formSubmit && (titleError) ? 'border-2 border-red-500' : ''"
-                    name="title" type="text" placeholder="Enter title" v-model="title" />
+                <InputText :class="formSubmit && titleError ? 'border-2 border-red-500' : ''" name="title" type="text"
+                    placeholder="Enter title" v-model="title" />
                 <div v-if="formSubmit && (titleError)">
+                    <TextFieldsError :error-title="Array.isArray(titleError) ? titleError.join(' & ') : titleError" />
+                </div>
+                <InputText :class="formSubmit && (subtitleError) ? 'border-2 border-red-500' : ''" name="subtitle"
+                    type="text" placeholder="Enter subtitle" v-model="subtitle" />
+                <div v-if="formSubmit && (subtitleError)">
                     <TextFieldsError
-                        :error-title="titleError?.errors?.join(',') || titleError?.errors[0]" />
+                        :error-title="(Array.isArray(subtitleError)) ? subtitleError.join(' & ') : subtitleError" />
                 </div>
 
-                <!-- Subtitle Field -->
-                <InputText
-                    :class="formSubmit && (subtitleError || subtitle.length <= 3) ? 'border-2 border-red-500' : ''"
-                    name="subtitle" type="text" placeholder="Enter subtitle" v-model="subtitle" />
-                <div v-if="formSubmit && (subtitleError || subtitle.length <= 3)">
-                    <TextFieldsError
-                        :error-title="subtitleError?.errors?.join(', ') || 'Subtitle must be more than 3 characters.'" />
+                <InputText :class="formSubmit && (imageError) ? 'border-2 border-red-500' : ''" name="image" type="text"
+                    placeholder="Enter image url" v-model="image" />
+                <div v-if="formSubmit && (imageError)">
+                    <TextFieldsError :error-title="(Array.isArray(imageError) ? imageError.join(',') : imageError)" />
                 </div>
-
-                <!-- Image Field -->
-                <InputText :class="formSubmit && (imageError || !image) ? 'border-2 border-red-500' : ''" name="image"
-                    type="text" placeholder="Enter image url" v-model="image" />
-                <div v-if="formSubmit && (imageError || !image)">
-                    <TextFieldsError :error-title="imageError?.errors?.[0] || 'Image URL is required.'" />
-                </div>
-
-                <!-- Blog Editor -->
                 <Editor v-model="editorData" editorStyle="height: 320px"
-                    :class="formSubmit && (blogError || !editorData) ? 'border-2 border-red-500' : ''" />
-                <div v-if="formSubmit && (blogError || !editorData)">
-                    <TextFieldsError :error-title="blogError?.errors?.[0] || 'Blog content cannot be empty.'" />
+                    :class="formSubmit && (blogError) ? 'border-2 border-red-500' : ''" />
+                <div v-if="formSubmit && (blogError)">
+                    <TextFieldsError :error-title="(Array.isArray(blogError) ? blogError.join(', ') : blogError)" />
                 </div>
             </div>
 
             <Toast />
-            <Button :loading="isLoading" @click="postBlogsList()" class="bg-black text-white p-2 mt-10 w-[95%]"
-                label="Post" />
+            <Button :loading="newBlogStore.isLoading" @click="postBlogsList()"
+                class="bg-black text-white p-2 mt-10 w-[95%]" label="Post" />
         </div>
     </div>
 </template>

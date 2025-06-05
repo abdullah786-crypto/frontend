@@ -9,9 +9,8 @@ import {
 } from '@/services/blog.services';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import debounce from 'lodash/debounce';
 
-  export const useBlogStore = defineStore('blogStore', () => {
+export const useBlogStore = defineStore('blogStore', () => {
   const editorValue = ref('');
   const posts = ref([]);
   const name = ref('');
@@ -23,19 +22,21 @@ import debounce from 'lodash/debounce';
   const totalRecords = ref('');
   const isLoading = ref();
   const addPostId = ref();
-  const isCommentLoading = ref(false)
+  const isCommentLoading = ref(false);
 
   const addBlogPosts = async (data) => {
     isLoading.value = true;
+    await new Promise((resolve) => setTimeout(resolve, 1500))
     try {
       const result = await postAllBlogs(data);
       addPostId.value = result.data.post.id;
+      isLoading.value = false
       return {
         success: true,
         message: result.data.message,
       };
     } catch (error) {
-      console.log('error is', error);
+      isLoading.value = false
       return {
         success: false,
         message: error.response.data.message,
@@ -44,51 +45,44 @@ import debounce from 'lodash/debounce';
     }
   };
 
-const debouncedGetAllBlogs = debounce(
-  (title, subtitle, page, limit, resolve, reject) => {
-    getAllBlogs(title, subtitle, page, limit).then(resolve).catch(reject);
-  },
-  1500
-);
+  const getBlogPosts = async (title, subtitle, page, limit) => {
+    isLoading.value = true;
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
-const getBlogPosts = (title, subtitle, page, limit) => {
-  isLoading.value = true;
-  return new Promise((resolve, reject) => {
-    debouncedGetAllBlogs(title, subtitle, page, limit, resolve, reject);
-  })
-  .then(result => {
-    isLoading.value = false;
-    totalRecords.value = result.data.totalRecords;
-    posts.value = result.data.blogs;
-  })
-  .catch(err => {
-    isLoading.value = false;
-    console.error(err);
-  });
-};
-
+    return await getAllBlogs(title, subtitle, page, limit)
+      .then((result) => {
+        isLoading.value = false;
+        totalRecords.value = result.data.totalRecords;
+        posts.value = result.data.blogs;
+      })
+      .catch((err) => {
+        isLoading.value = false;
+        console.error(err);
+      });
+  };
 
   const getBlogPostsById = async (postId) => {
     isLoading.value = true;
-    blog.value = setTimeout(async() => {
-      await getBlogById(postId)
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    blog.value = await getBlogById(postId)
       .then((result) => {
-       isLoading.value = false;
-        console.log('value of the result is ', result.data.blogs);
+        isLoading.value = false;
         commentsList.value = result.data.blogs.comments;
-        // console.log('new comments list is', commentsList.value);
         return result.data.blogs;
-      })  
+      })
       .catch((err) => {
+        isLoading.value = false
         return err;
       });
-    }, 2000)
-    console.log('vblog.cas ', blog.value);
   };
+
   const postComment = async (data, blogId) => {
-    isCommentLoading.value = true
+    isCommentLoading.value = true;
+    await new Promise((resolve) => setTimeout(resolve, 1500));
     try {
       const result = await addComments(data, blogId);
+        isCommentLoading.value = false;
+
       let pushingComment = {
         id: result.data.comment.id,
         username: result.data.comment.username,
@@ -97,38 +91,34 @@ const getBlogPosts = (title, subtitle, page, limit) => {
       };
       commentsList.value = [...commentsList.value, pushingComment];
       if (result.status === 200) {
-        isCommentLoading.value = false
+        isCommentLoading.value = false;
         return {
           success: true,
           message: result.data.message,
         };
       }
     } catch (error) {
-      
-      console.log('error while submitting comments', {
-        success: false,
-        message: error.response.data.messagge,
-        errors: error.response.data.error,
-      });
-      console.log(
-        'simple error is',
-        error.response.data.error.map((e) => e),
-      );
+      isCommentLoading.value = false;
       return {
         success: false,
         message: error.response.data.messagge,
-        errors: error.response.data.error.map((e) => e),
+        errors: error.response.data.error,
       };
     }
   };
-  const editPostById = async (data, id) => {
+
+  const editBlogPostById = async (data, id) => {
+    isLoading.value = true;
     try {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       const result = await updateBlogById(data, id);
+      isLoading.value = false
       return {
         success: true,
         message: result.data.message,
       };
     } catch (error) {
+      isLoading.value = false
       return {
         success: false,
         message: error.response.data.message,
@@ -136,18 +126,20 @@ const getBlogPosts = (title, subtitle, page, limit) => {
       };
     }
   };
+
   const updateComment = async (data, id) => {
+      isCommentLoading.value = true
+      await new Promise((resolve) => setTimeout(resolve, 1500))
     try {
       const stringifyData = JSON.stringify(data);
       const result = await updateCommentById(stringifyData, id);
+      isCommentLoading.value = false
       return {
         success: true,
         message: result.data.message,
       };
     } catch (error) {
-       let comIndex = commentsList.value.findIndex(id)
-      console.log('index of comment is', comIndex)
-      console.log('error', error);
+      isCommentLoading.value = false
       return {
         success: false,
         message: error.response.data.messagge,
@@ -157,11 +149,8 @@ const getBlogPosts = (title, subtitle, page, limit) => {
   };
   const deleteComment = async (id) => {
     try {
-      console.log('id in store is', id);
-      console.log('aaaaaaaaaaaaaaaa', commentsList.value);
       const result = await deleteCommentById(id);
       commentsList.value = commentsList.value.filter((com) => com.id !== id);
-      // blog.value = blog.value.comments.filter((comment) => comment.id !== id);
       return {
         success: true,
         message: result.data.message,
@@ -173,13 +162,6 @@ const getBlogPosts = (title, subtitle, page, limit) => {
       };
     }
   };
-
-  // const searchBlogList = async (title, subtitle) => {
-  //   posts.value = await searchQuery(title, subtitle).then((res) => {
-  //     return res.data.blogs;
-  //   });
-  //   console.log('search result is a', posts.value);
-  // };
 
   return {
     editorValue,
@@ -199,10 +181,8 @@ const getBlogPosts = (title, subtitle, page, limit) => {
     getBlogPostsById,
     postComment,
     updateComment,
-    editPostById,
+    editBlogPostById,
     deleteComment,
-    debouncedGetAllBlogs
-    // searchBlogList,
   };
 });
 

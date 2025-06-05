@@ -11,14 +11,6 @@ const goBlogDetailsPage = (id) => {
     router.push(`/blog-details/${id}`)
 }
 
-onMounted(() => {
-    console.log(props.id)
-    console.log(props.imgUrl)
-    console.log('value of the comments is', props.comments)
-    console.log(props.title)
-    console.log(props.subtitle)
-
-})
 </script>
 
 <template>

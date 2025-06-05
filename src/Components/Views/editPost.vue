@@ -6,21 +6,14 @@ import Toast from 'primevue/toast';
 import { useToast } from 'primevue/usetoast';
 import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import useBlogStore from '@/State managment/blogPostStore';
-import 'primevue/resources/themes/saga-blue/theme.css';
-import 'primevue/resources/primevue.min.css';
-import 'primeicons/primeicons.css';
-import 'quill/dist/quill.core.css';
-import 'quill/dist/quill.snow.css';
+import useBlogStore from '@/stores/blogPostStore';
 import InputText from 'primevue/inputtext';
 import TextFieldsError from '../comment/textFieldsError.vue';
-import debounce from 'lodash/debounce'
 
 const blogStore = useBlogStore()
 const postId = ref('');
 const data = ref({})
 const router = useRouter()
-const blogData = ref('')
 const toast = useToast()
 const isLoading = ref(false)
 let titleError = ref(false)
@@ -33,18 +26,17 @@ const goHomePage = () => {
 
 onMounted(async () => {
     postId.value = useRoute().params.id
-    console.log('id is ', postId.value);
-    console.log('data is ', data.value);
 
     await blogStore.getBlogPostsById(postId.value)
-    // data.value = blogStore.blog
-    Object.assign(data.value, blogStore.blog)
-    // blogData.value = data.value.blogData
-    console.log('data is 3', data.value.blogData);
+    data.value = blogStore.blog
 })
 
 const updatePost = async () => {
     isLoading.value = true
+    titleError.value = false
+    subtitleError.value = false
+    imageError.value = false
+    blogError.value = false
     let jsonData = {
         title: data.value.title,
         subtitle: data.value.subtitle,
@@ -52,9 +44,8 @@ const updatePost = async () => {
         blogData: data.value.blogData
     }
     jsonData = JSON.stringify(jsonData)
-    console.log('update post called here');
 
-    const result = await blogStore.editPostById(jsonData, postId.value)
+    const result = await blogStore.editBlogPostById(jsonData, postId.value)
     if (result.success) {
         toast.add({
             severity: 'success',
@@ -63,23 +54,33 @@ const updatePost = async () => {
             life: 3000
         })
         isLoading.value = false
+        titleError.value = false
+        subtitleError.value = false
+        imageError.value = false
+        blogError.value = false
         setTimeout(() => {
             router.push('/')
         }, 1500)
     } else {
-        subtitleError.value = result.error.find((err) => err.property === 'subtitle' ? err.error : false)
-        imageError.value = result.error.find((err) => err.property === 'image' ? err.error : false)
-        blogError.value = result.error.find((err) => err.property === 'blogData' ? err.error : false)
-        titleError.value = result.error.find((err) => err.property === 'title' ? err.error : false)
-        console.log('Title error is', titleError.value);
-        console.log('Title error is', subtitleError.value);
-        console.log('Title error is', imageError.value);
-        console.log('Title error is', blogError.value);
-        console.log('error while updating post', result.error)
+        subtitleError.value = result.error.filter((err) => err.field === 'subtitle').map(e => e.message)
+        imageError.value = result.error.filter((err) => err.field === 'image').map(e => e.message)
+        blogError.value = result.error.filter((err) => err.field === 'blogData').map(e => e.message)
+        titleError.value = result.error.filter((err) => err.field === 'title').map(e => e.message)
+        if (titleError.value.length === 0) {
+            titleError.value = false
+        }
+        if (subtitleError.value.length === 0) {
+            subtitleError.value = false
+        }
+        if (imageError.value.length === 0) {
+            imageError.value = false
+        }
+        if (blogError.value.length === 0) {
+            blogError.value = false
+        }
         toast.add({
             severity: 'error',
             summary: result.message,
-            detail: result.error,
             life: 3000
         })
         isLoading.value = false
@@ -100,59 +101,40 @@ const updatePost = async () => {
 
             <div class="card mt-10 flex flex-col gap-3 w-[95%] self-center">
                 <!-- Title -->
-                <InputText
-                    :class="titleError && (!data.title || data.title.length < 3) && 'border-2 border-red-500 focus:border-red-500'"
-                    name="title"
-                    type="text"
-                    placeholder="Enter title"
-                    v-model="data.title"
-                />
-                <div v-if="titleError && (!data.title || data.title.length < 3)">
-                    <TextFieldsError :error-title="titleError.error.join(', ')" />
+                <InputText :class="titleError && 'border-2 border-red-500 focus:border-red-500'" name="title"
+                    type="text" placeholder="Enter title" v-model="data.title" />
+                <div v-if="titleError">
+                    <TextFieldsError
+                        :error-title="(Array.isArray(titleError) ? titleError.join(' and ') : titleError)" />
                 </div>
 
                 <!-- Subtitle -->
-                <InputText
-                    :class="subtitleError && (!data.subtitle || data.subtitle.length < 3) && 'border-2 border-red-500 focus:border-red-500'"
-                    name="subtitle"
-                    type="text"
-                    placeholder="Enter subtitle"
-                    v-model="data.subtitle"
-                />
-                <div v-if="subtitleError && (!data.subtitle || data.subtitle.length < 3)">
-                    <TextFieldsError :error-title="subtitleError.error.join(', ')" />
+                <InputText :class="subtitleError && subtitleError && 'border-2 border-red-500 focus:border-red-500'"
+                    name="subtitle" type="text" placeholder="Enter subtitle" v-model="data.subtitle" />
+                <div v-if="subtitleError && subtitleError">
+                    <TextFieldsError
+                        :error-title="(Array.isArray(subtitleError) ? subtitleError.join(' and ') : subtitleError)" />
                 </div>
 
                 <!-- Image URL -->
-                <InputText
-                    :class="imageError && (!data.image || data.image.length < 3) && 'border-2 border-red-500 focus:border-red-500'"
-                    name="image"
-                    type="text"
-                    placeholder="Enter image url"
-                    v-model="data.image"
-                />
-                <div v-if="imageError && (!data.image || data.image.length < 3)">
-                    <TextFieldsError :error-title="imageError.error.join(', ')" />
+                <InputText :class="imageError ? 'border-2 border-red-500 focus:border-red-500' : ''" name="image"
+                    type="text" placeholder="Enter image url" v-model="data.image" />
+                <div v-if="imageError">
+                    <TextFieldsError
+                        :error-title="(Array.isArray(imageError) ? imageError.join(' and ') : imageError)" />
                 </div>
 
                 <!-- Blog Editor -->
-                <Editor
-                    :class="blogError && (!data.blogData || data.blogData.length < 10) && 'border-2 border-red-500 focus:border-red-500'"
-                    v-model="data.blogData"
-                    editorStyle="height: 320px"
-                />
-                <div v-if="blogError && (!data.blogData || data.blogData.length < 10)">
-                    <TextFieldsError :error-title="blogError.error.join(', ')" />
+                <Editor :class="blogError && blogError && 'border-2 border-red-500 focus:border-red-500'"
+                    v-model="data.blogData" editorStyle="height: 320px" />
+                <div v-if="blogError && blogError">
+                    <TextFieldsError :error-title="(Array.isArray(blogError) ? blogError.join(' and ') : blogError)" />
                 </div>
             </div>
 
             <Toast />
-            <Button
-                :loading="isLoading"
-                @click="updatePost"
-                class="bg-black text-white p-2 mt-10 w-[95%]"
-                label="Update"
-            />
+            <Button :loading="blogStore.isLoading" @click="updatePost" class="bg-black text-white p-2 mt-10 w-[95%]"
+                label="Update" />
         </div>
     </div>
 </template>

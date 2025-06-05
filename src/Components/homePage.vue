@@ -1,11 +1,10 @@
 <script setup>
 
-import '../assets/main.css'
 import { onMounted, ref, watch } from 'vue';
 import Button from 'primevue/button';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
-import useBlogStore from '@/State managment/blogPostStore';
+import useBlogStore from '@/stores/blogPostStore';
 import BlogPost from './Views/blogPost.vue';
 import Paginator from 'primevue/paginator';
 
@@ -15,7 +14,6 @@ const currentPage = ref(0);
 const rowsPerPage = ref(12)
 const searchValue = ref('')
 const blogStore = useBlogStore()
-let timeOut;
 let isSearching = ref(false)
 
 onMounted(async () => {
@@ -23,7 +21,6 @@ onMounted(async () => {
         searchValue.value,
         currentPage.value,
         rowsPerPage.value)
-    console.log('value of the post us', posts.value)
 });
 
 const { posts } = storeToRefs(newBlogStore);

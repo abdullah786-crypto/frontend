@@ -14,10 +14,7 @@ import ToastService from 'primevue/toastservice';
 import 'primevue/resources/themes/lara-light-blue/theme.css'; // ya koi aur theme
 import 'quill/dist/quill.snow.css'; // for Editor
 import Editor from 'primevue/editor'
-import './assets/main.css'
 import Toast from 'primevue/toast';
-import Quill from 'quill';
-// Toast
 
 const pinia = createPinia();
 
