@@ -22,23 +22,23 @@ const goBlogDetailsPage = (id) => {
             </div>
         </template>
         <template #title>
-            <div class="max-w-[99%] h-[37px] min-w-[99%] whitespace-nowrap overflow-hidden text-ellipsis">{{ props.title
+            <div class="max-w-[99%] h-[37px] min-w-[99%] whitespace-nowrap overflow-hidden text-ellipsis">{{ title
             }}</div>
         </template>
         <template :class="' text-justify'" #subtitle>
             <div class="h-[24px]">
-                {{ props.subtitle }}
+                {{ subtitle }}
             </div>
         </template>
         <template #content>
             <div class="w-full flex flex-row justify-between h-[18px]">
                 <p class="text-[12px] text-gray-400">Total comments:</p>
-                <p class="text-[11px] text-gray-400">{{ props.comments.length }}</p>
+                <p class="text-[11px] text-gray-400">{{ comments.length }}</p>
             </div>
         </template>
         <template #footer>
             <div class="mt-2">
-                <Button label="View" @click="goBlogDetailsPage(props.id)"
+                <Button label="View" @click="goBlogDetailsPage(id)"
                     :class="'bg-black text-white w-full p-2 rounded-lg rounded-sm rounded-xl cursor-pointer'">
                 </Button>
             </div>

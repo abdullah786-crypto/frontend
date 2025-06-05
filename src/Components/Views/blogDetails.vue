@@ -10,7 +10,7 @@ import Toast from 'primevue/toast';
 import Comments from '../comment/comments.vue';
 import TextFieldsError from '../validationErrors/textFieldsError.vue';
 
-const props = defineProps(['id', 'title', 'subtitle', 'comments'])
+// const props = defineProps(['id', 'title', 'subtitle', 'comments'])
 
 const route = useRoute();
 const router = useRouter();
