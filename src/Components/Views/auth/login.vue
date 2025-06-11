@@ -6,7 +6,9 @@ import InputText from 'primevue/inputtext';
 import { ref } from 'vue';
 import Toast from 'primevue/toast';
 import { useToast } from 'primevue/usetoast';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const toast = useToast()
 const username = ref()
 const password = ref()
@@ -17,9 +19,9 @@ const loginUser = async () => {
     if (userLogin.success) {
         username.value = ''
         password.value = ''
-        console.log('====================================');
-        console.log('user login id is', userLogin.userData.data.user.id);
-        console.log('====================================');
+        setTimeout(() => {
+          router.push('/');
+        }, 1000);
         localStorage.setItem('userId', userLogin.userData.data.user.id)
         toast.add({
             severity: 'success',

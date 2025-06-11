@@ -1,3 +1,4 @@
+import routers from '@/routes/routes';
 import { loginUser, signupUser } from '@/services/auth/auth.services';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
@@ -13,6 +14,7 @@ export const useAuthStore = defineStore('authStore', () => {
 
       if (user) {
         isLoading.value = false;
+       
         return {
           success: true,
           message: user.data.message,
@@ -37,6 +39,7 @@ export const useAuthStore = defineStore('authStore', () => {
 
       if (user) {
         isLoading.value = false;
+       
         return {
           success: true,
           message: user.data.message,
