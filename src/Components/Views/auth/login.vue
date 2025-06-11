@@ -22,6 +22,7 @@ const loginUser = async () => {
         setTimeout(() => {
           router.push('/');
         }, 1000);
+        localStorage.setItem('user', userLogin.userData.data.user)
         localStorage.setItem('userId', userLogin.userData.data.user.id)
         toast.add({
             severity: 'success',

@@ -32,16 +32,19 @@ onMounted(async () => {
 })
 
 const updatePost = async () => {
+    let userId = localStorage.getItem('userId')
     isLoading.value = true
     titleError.value = false
     subtitleError.value = false
     imageError.value = false
     blogError.value = false
+    let currentUser = localStorage.getItem('user')
     let jsonData = {
         title: data.value.title,
         subtitle: data.value.subtitle,
         image: data.value.image,
-        blogData: data.value.blogData
+        blogData: data.value.blogData,
+        // user: currentUser
     }
     jsonData = JSON.stringify(jsonData)
 

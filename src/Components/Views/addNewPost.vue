@@ -28,11 +28,13 @@ const postBlogsList = async () => {
     subtitleError.value = false
     imageError.value = false
     blogError.value = false
+    let userId = localStorage.getItem('userId')
     const data = JSON.stringify({
         title: title.value,
         subtitle: subtitle.value,
         image: image.value,
         blogData: editorData.value,
+        userId: userId
     });
     const result = await newBlogStore
         .addBlogPosts(data)

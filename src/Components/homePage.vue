@@ -69,7 +69,7 @@ watch(searchValue, async () => {
             <div class="mb-10 grid x-sm:grid-col-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-10 mt-10"
                 v-if="posts.length > 0">
                 <div v-for="(blog) in posts" :key="blog.id" :class="'w-full'">
-                    <BlogPost :id="blog.id" :title="blog.title" :imgUrl="blog.image" :subtitle="blog.subtitle"
+                    <BlogPost :posted-by="blog.user.username" :id="blog.id" :title="blog.title" :imgUrl="blog.image" :subtitle="blog.subtitle"
                         :comments="blog.comments" />
                 </div>
             </div>

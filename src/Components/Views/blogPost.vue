@@ -5,7 +5,7 @@ import { defineProps, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-const props = defineProps(['id', 'imgUrl', 'title', 'subtitle', 'comments'])
+const props = defineProps(['id', 'imgUrl', 'title', 'subtitle', 'comments', 'postedBy'])
 
 const goBlogDetailsPage = (id) => {
     router.push(`/blog-details/${id}`)
@@ -15,7 +15,7 @@ const goBlogDetailsPage = (id) => {
 
 <template>
 
-    <Card class="shadow-xl border border-gray-200 w-full h-[319px]" style="width: 100%; overflow: hidden">
+    <Card class="shadow-xl border border-gray-200 w-full h-[339px]" style="width: 100%; overflow: hidden">
         <template #header>
             <div class="h-[142px]">
                 <img class="self-center" alt="Failed to load image ☹️" :src="imgUrl" />
@@ -34,6 +34,10 @@ const goBlogDetailsPage = (id) => {
             <div class="w-full flex flex-row justify-between h-[18px]">
                 <p class="text-[12px] text-gray-400">Total comments:</p>
                 <p class="text-[11px] text-gray-400">{{ comments.length }}</p>
+            </div>
+            <div class="w-full flex flex-row justify-between h-[18px]">
+                <p class="text-[12px] text-gray-400">Posted by:</p>
+                <p class="text-[11px] text-gray-400">{{ postedBy }}</p>
             </div>
         </template>
         <template #footer>
