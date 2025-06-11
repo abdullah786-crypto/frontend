@@ -1,4 +1,3 @@
-import axios from 'axios';
 import http from './httpServices/httpService';
 
 export const getAllBlogs = async (title, subtitle, page, limit) => {

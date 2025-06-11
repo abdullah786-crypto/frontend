@@ -1,5 +1,3 @@
-// src/services/httpServices/httpService.js
-
 import axios from 'axios';
 
 const http = axios.create({

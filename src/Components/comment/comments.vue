@@ -10,7 +10,6 @@ import { useToast } from 'primevue/usetoast';
 import { ref } from 'vue';
 import TextFieldsError from '../validationErrors/textFieldsError.vue';
 
-
 const props = defineProps(['username', 'email', 'comment', 'id', 'commentsList'])
 const menu = ref(null)
 const showDialog = ref(false)
