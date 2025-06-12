@@ -58,29 +58,38 @@ const postBlogsList = async () => {
             router.push(`/blog-details/${newBlogStore.addPostId}`)
         }, 1500)
     } else {
+        let generalError = result.generalError.response.data.message
+        console.log('error while adding post is', generalError)
+        if (generalError) {
+            toast.add({
+                severity: 'error',
+                summary: 'Failed to add post',
+                detail: generalError
+            })
+        } else {
+            titleError.value = result.errors.filter((err) => err.field === 'title').map(v => v.message)
+            subtitleError.value = result.errors.filter((err) => err.field === 'subtitle').map(v => v.message)
+            imageError.value = result.errors.filter((err) => err.field === 'image').map(v => v.message)
+            blogError.value = result.errors.filter((err) => err.field === 'blogData').map(v => v.message)
 
-        titleError.value = result.errors.filter((err) => err.field === 'title').map(v => v.message)
-        subtitleError.value = result.errors.filter((err) => err.field === 'subtitle').map(v => v.message)
-        imageError.value = result.errors.filter((err) => err.field === 'image').map(v => v.message)
-        blogError.value = result.errors.filter((err) => err.field === 'blogData').map(v => v.message)
-
-        if (titleError.value.length === 0) {
-            titleError.value = false
+            if (titleError.value.length === 0) {
+                titleError.value = false
+            }
+            if (subtitleError.value.length === 0) {
+                subtitleError.value = false
+            }
+            if (imageError.value.length === 0) {
+                imageError.value = false
+            }
+            if (blogError.value.length === 0) {
+                blogError.value = false
+            }
+            toast.add({
+                severity: 'error',
+                summary: result.message,
+                life: 3000,
+            })
         }
-        if (subtitleError.value.length === 0) {
-            subtitleError.value = false
-        }
-        if (imageError.value.length === 0) {
-            imageError.value = false
-        }
-        if (blogError.value.length === 0) {
-            blogError.value = false
-        }
-        toast.add({
-            severity: 'error',
-            summary: result.message,
-            life: 3000,
-        })
     }
 };
 const goHomePage = () => {

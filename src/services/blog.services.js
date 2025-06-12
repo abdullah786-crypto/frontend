@@ -15,7 +15,7 @@ export const getAllBlogs = async (title, subtitle, page, limit) => {
 
 export const postAllBlogs = async (data) => {
   try {
-    const response = await http.post(`/blog`, data);
+    const response = await http.post(`/blog`, data, {withCredentials: true});
     return response;
   } catch (error) {
     throw error;
@@ -70,7 +70,7 @@ export const deleteCommentById = async (id) => {
 
 export const updateBlogById = async (data, id) => {
   try {
-    const respose = await http.put(`/blog/id=${id}`, data);
+    const respose = await http.put(`/blog/id=${id}`, data, {withCredentials: true});
     return respose;
   } catch (error) {
     throw error;

@@ -39,8 +39,9 @@ export const useBlogStore = defineStore('blogStore', () => {
       isLoading.value = false
       return {
         success: false,
-        message: error.response.data.message,
-        errors: error.response.data.errors,
+        message: error?.response?.data?.message,
+        errors: error?.response?.data?.errors,
+        generalError: error
       };
     }
   };
@@ -123,6 +124,7 @@ export const useBlogStore = defineStore('blogStore', () => {
         success: false,
         message: error.response.data.message,
         error: error.response.data.errors,
+        generalError: error
       };
     }
   };

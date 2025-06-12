@@ -38,13 +38,12 @@ const updatePost = async () => {
     subtitleError.value = false
     imageError.value = false
     blogError.value = false
-    let currentUser = localStorage.getItem('user')
+    // let currentUser = localStorage.getItem('user')
     let jsonData = {
         title: data.value.title,
         subtitle: data.value.subtitle,
         image: data.value.image,
         blogData: data.value.blogData,
-        // user: currentUser
     }
     jsonData = JSON.stringify(jsonData)
 
@@ -65,27 +64,38 @@ const updatePost = async () => {
             router.push('/')
         }, 1500)
     } else {
-        subtitleError.value = result.error.filter((err) => err.field === 'subtitle').map(e => e.message)
-        imageError.value = result.error.filter((err) => err.field === 'image').map(e => e.message)
-        blogError.value = result.error.filter((err) => err.field === 'blogData').map(e => e.message)
-        titleError.value = result.error.filter((err) => err.field === 'title').map(e => e.message)
-        if (titleError.value.length === 0) {
-            titleError.value = false
+        const unauthorizedError = result.generalError.response.data.message
+        if (unauthorizedError) {
+            toast.add({
+                severity: 'error',
+                summary: 'Failed to update post',
+                detail: unauthorizedError,
+                life: 3000,
+            })
+        } else {
+            subtitleError.value = result.error.filter((err) => err.field === 'subtitle').map(e => e.message)
+            imageError.value = result.error.filter((err) => err.field === 'image').map(e => e.message)
+            blogError.value = result.error.filter((err) => err.field === 'blogData').map(e => e.message)
+            titleError.value = result.error.filter((err) => err.field === 'title').map(e => e.message)
+            if (titleError.value.length === 0) {
+                titleError.value = false
+            }
+            if (subtitleError.value.length === 0) {
+                subtitleError.value = false
+            }
+            if (imageError.value.length === 0) {
+                imageError.value = false
+            }
+            if (blogError.value.length === 0) {
+                blogError.value = false
+            }
+            toast.add({
+                severity: 'error',
+                summary: result.message,
+                life: 3000
+            })
         }
-        if (subtitleError.value.length === 0) {
-            subtitleError.value = false
-        }
-        if (imageError.value.length === 0) {
-            imageError.value = false
-        }
-        if (blogError.value.length === 0) {
-            blogError.value = false
-        }
-        toast.add({
-            severity: 'error',
-            summary: result.message,
-            life: 3000
-        })
+
         isLoading.value = false
     }
 }
