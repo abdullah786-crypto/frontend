@@ -90,7 +90,7 @@ const postComment = async () => {
             <div>
                 <h1 class="text-[30px] text-xl text-lg text-2xl font-bold text-center">{{ blogStore.blog.title }}</h1>
                 <Button @click="gotToUpdatePostPage(postId)"
-                    :class="'bg-black text-center text-white w-[150px] p-2 rounded-lg rounded-sm rounded-xl cursor-pointer self-end'">
+                    class="bg-black text-center text-white w-[150px] p-2 rounded-lg rounded-sm rounded-xl cursor-pointer self-end">
                     <span class="p-button-label">Edit Post</span>
                 </Button>
             </div>

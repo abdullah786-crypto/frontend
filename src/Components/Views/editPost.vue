@@ -122,7 +122,7 @@ const updatePost = async () => {
                 </div>
 
                 <!-- Subtitle -->
-                <InputText :class="subtitleError && subtitleError && 'border-2 border-red-500 focus:border-red-500'"
+                <InputText :class="subtitleError && 'border-2 border-red-500 focus:border-red-500'"
                     name="subtitle" type="text" placeholder="Enter subtitle" v-model="data.subtitle" />
                 <div v-if="subtitleError && subtitleError">
                     <TextFieldsError
@@ -138,9 +138,9 @@ const updatePost = async () => {
                 </div>
 
                 <!-- Blog Editor -->
-                <Editor :class="blogError && blogError && 'border-2 border-red-500 focus:border-red-500'"
+                <Editor :class="blogError && 'border-2 border-red-500 focus:border-red-500'"
                     v-model="data.blogData" editorStyle="height: 320px" />
-                <div v-if="blogError && blogError">
+                <div v-if="blogError">
                     <TextFieldsError :error-title="(Array.isArray(blogError) ? blogError.join(' and ') : blogError)" />
                 </div>
             </div>

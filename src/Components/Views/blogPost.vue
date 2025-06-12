@@ -25,7 +25,7 @@ const goBlogDetailsPage = (id) => {
             <div class="max-w-[99%] h-[37px] min-w-[99%] whitespace-nowrap overflow-hidden text-ellipsis">{{ title
             }}</div>
         </template>
-        <template :class="' text-justify'" #subtitle>
+        <template class="text-justify" #subtitle>
             <div class="h-[24px]">
                 {{ subtitle }}
             </div>
@@ -43,7 +43,7 @@ const goBlogDetailsPage = (id) => {
         <template #footer>
             <div class="mt-2">
                 <Button label="View" @click="goBlogDetailsPage(id)"
-                    :class="'bg-black text-white w-full p-2 rounded-lg rounded-sm rounded-xl cursor-pointer'">
+                    class="bg-black text-white w-full p-2 rounded-lg rounded-sm rounded-xl cursor-pointer">
                 </Button>
             </div>
         </template>
